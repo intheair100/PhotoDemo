@@ -46,13 +46,6 @@
         picker.allowsEditing = YES;//设置照片可编辑
         picker.sourceType = sourceType;
         //picker.showsCameraControls = NO;//默认为YES
-        //创建叠加层
-//        UIView *overLayView=[[UIView alloc]initWithFrame:CGRectMake(0, 120, 320, 254)];
-//        //取景器的背景图片，该图片中间挖掉了一块变成透明，用来显示摄像头获取的图片；
-//        UIImage *overLayImag=[UIImage imageNamed:@"zhaoxiangdingwei.png"];
-//        UIImageView *bgImageView=[[UIImageView alloc]initWithImage:overLayImag];
-//        [overLayView addSubview:bgImageView];
-//        picker.cameraOverlayView=overLayView;
         picker.cameraDevice=UIImagePickerControllerCameraDeviceFront;//选择前置摄像头或后置摄像头
         [self presentViewController:picker animated:YES completion:^{
         }];
@@ -96,8 +89,10 @@
     NSData *imageData = UIImageJPEGRepresentation(currentImage, 0.5);
     // 获取沙盒目录
     NSString *fullPath = [[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:imageName];
-    // 将图片写入文件
-    [imageData writeToFile:fullPath atomically:NO];
+    // 将图片写入文件，写入磁盘操作，重新开启一个线程，以防阻塞主线程。
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        [imageData writeToFile:fullPath atomically:NO];
+    });
     //将选择的图片显示出来
     [self.photoImage setImage:[UIImage imageWithContentsOfFile:fullPath]];
     //将图片保存到disk
